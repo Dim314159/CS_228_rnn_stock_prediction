@@ -1,497 +1,280 @@
 # CS_228 currency pair Trend prediction
-# Deep Learning for Currency Pair Prediction
-
-**Dmitri Koltsov**^1 **, Amirsadra Mohseni**^2 **, Linxuan Liu**^3
-University of California, Riverside
-{^1 dkolt 002 ,^2 amohs 002 ,^3 lliu 163 }@ucr.edu
-
-## 1 Introduction
-
-### Background
-
-Acurrencypairisthequotationoftwodifferentcurrencies,withthevalueofonecurrencybeingquotedagainstthe
-other.Inthisreport,weutilizesixmajorcurrencypairsincludingEUR/USD,GBP/USD,USD/JPY,EUR/GBP,EUR/JPY,
-GBP/JPYasourdatasets,focusingonthecurrencypairdataretrievedin1-minuteintervals.Theoutputofourmodelsis
-whetheracuriouscurrencytradershouldbuy,sell,orholdatthisparticularmomentintime.Wewouldliketoremindour
-readersthatthisprojectisonlymeanttoserveasaproofofconceptandisnotmeanttobedeployedinareal-life
-scenario involving valuable assets.
-
-Ourmodelsusethedatafromtheyear 2017 topredicttheyear2018,theyear 2018 topredict2019,and 2019 to
-predict 2020 usingthreemachinelearningmethodsoptimizedfortimeseriespredictionincludingavanillaRecurrent
-NeuralNetwork(RNN),Long-Short-Term-Memory(LSTM)[1],andGatedRecurrentUnits(GRU).Thecodeweusedto
-producetheseresultsisfreelyavailable,inthePythonlanguage,here:[ **GITHUBLINK** ]Allmodelsareimplementedusing
-the PyTorch [2] library.
-
-### Related Work
-
-Galeshchuket.al[3],giveabriefoverviewofpredictionproblemsandsomemethodstosolvethatsuchaseconometric
-models,timeseriesmodels,ANN,andDNN.Nguyen[4]mentionsseveralregressionmodelscanbeusefulindeep
-learningandcontributetoourproject.Vukovic[5]usesnaturalnetworkmodelsforpredictiononUSD/EURcurrency
-pairs.Healsoprovidessomeadvancedideasaboutdatacollectionanddeeplearningmodelsthatyieldgoodresultsin
-prediction.
-
-## 2 Materials and Methods
-
-### Data Acquisition
-
-Inthisreport,weusetheForexhistorycurrencypairdataretrievedat1-minuteintervalsobtainedfromHistData[6]asour
-dataset.Wehypothesizedthatusingonlytheyear 2020 topredictthecurrencytrendswillprovetoosensitiveandthe
-resultsmaynotbesignificantenough.Therefore,wetrainourmodelsonthedatafrom 2017 topredict2018,then 2018
-topredict 2019 and,finally, 2019 topredict2020.Eachdatafilecontainsthetimestampandratioforagivencurrency
-pair.Wecombineddatamatchingtimestamps.Ultimately,wehave 4 datasetsforeachyear2017,2018,2019,and2020.
-Each dataset has the following structure:
-
-- Columns represent all six currency pairs: EUR/USD,GBP/USD, USD/JPY, EUR/GBP, EUR/JPY, GBP/JPY
-- Each row represents the currency pairs’ ratio fora given timestamp separated by every 1 minute
 
 
-### Preliminaries
 
-Fig 1 ShowsthecurrencypairEUR/USDovertheyear 2017 andfig 2 showsthepriceofEURversusUSDfromJanuary
-through the middle of February of the same year.
+Project for CS 228, Spring 2021
 
-Fig 3 showsthesamepricepairforthefirst 10 daysof2017.Observe
-thattherearesmallertrendswithinthelong-termtrendsandthateven
-thougha long-termtrendmayincrease,smallertrendsmayfluctuate
-within this main trend. We assume that long-term trends (months)
-dependon“outofmarket”situationssuchaseconomy,politics,natural
-disasters, etc.In contrast, short-termtrendsdependon “insidethe
-market”situations.Whentradersbuyparticularstocksmore,theprice
-rises,andwhentheysellthosestocks,thepricefalls.Thisassumption
-is not far fromthetruth,thoughoversimplifiedforthisproject.Our
-predictingstrategyisbasedonthissimplifyingassumption.Weanalyze
-market behavior andtry topredict short-term trends. Inthe stock
-market,sucha strategyis called“shaving”or“scalping.”Thisisnotwhatprofessionalbrokersuse,however,itis
-employed extensively by beginner individual traders.
 
-### Predicting Strategy
+Deep Learning for Currency Pair Prediction
 
-Twooftherequiredhyper-parameterstotrainourmodelsaretheperiodforwhichwearegoingtopredictatrend,called
-“predictionlength,”andourtargetdifferenceofprice,called“pricejump.”Foreachtimestamp,welookinthefuturefor
-thedurationof“predictionlength”andcheckifthepricegoesupordownforthe“pricejump”withinthisperiod.We
-createatargetvariable“y”forourdatasetsbasedupontheseobservations.Ifthepricegoesbelowthethresholdof
-“pricejump,”wepredict“sell.”Ifthepriceincreases,wepredict“buy.”Ifthepricestayswithinthe“pricejump”limitsfor
-“prediction length,” we predict “hold.”
+Amirsadra Mohseni(amohs002@ucr.edu)
+Dmitri Koltsov(dkolt002@ucr.edu)
+Linxuan Liu(lliu163@ucr.edu)
 
-Accordingly, our one-hot-encoded target variable “y”is illustrated as follows:
-“sell”: [1, 0, 0] “hold”: [0, 1, 0] “buy”:[0, 0, 1]
 
-Toevaluatethemodel,wecouldnotsimplycompare“ŷ,”ourprediction,and“y,”thetrueeventbecauseweremain
-indifferentifthemodelcorrectlypredicts“hold”sincethispredictiondoesnotyieldanyprofitorloss.Thesolutionthenis
-tocompare“ŷ”and“y”andcount“wrong”ifwepredict“buy”whenwehaveto“sell”orviceversa.Conversely,we
-count “right” if we predict “buy” or “sell” correctly.
 
+
+
+
+
+
+INTRODUCTION
+
+A currency pair is the quotation of two different currencies, with the value of one currency being quoted against the other. We take 6 major currency pairs including EUR/USD, GBP/USD, USD/JPY, EUR/GBP, EUR/JPY, GBP/JPY as our data set.
+For our project, we will focus on the currency pair data retrieved in the interval of 1 minute as our data sets. The data we use is according to Forex historyi. We will use the year of 2017 data to predict the year of 2018, the year of 2018 data to predict the year of 2019, the year of 2019 data to predict the year of 2020.
+We are going to train our models on one year and use this model to predict next year. Then we are going to keep training model on the next year to predict next coming year and so on.
+
+
+COLLECTING AND ORGANIZING DATA
+
+We downloaded data for each currency pair. Each data file contains timestamp and ratio for given currency pair.
+We combined data matching timestamps. So, at the end we have 4 data sets for each year 2017, 2018, 2019 and 2020. Each data set has following structure:
+- rows: currency pairs ratio for given timestamp (every minute)
+- columns: all 6 currency pairs.
+ 
+
+MODELS WE USE
+
+We used pytorchii to implement our models.
+Our models are:
+- plain RNN
+- LSTM
+- GRU
+
+
+PREDICTING STRATEGY
+
+
+As you can see within long term trends there are smaller trends. And even if long term trend goes up smaller trends may go up and down within this main trend.
+We assume that long term trends (months) depend on ‘out of market’ situation. Economy, politics, natural disasters… And short term trends depend on ‘inside the market’ situation. People start to buy particular stocks more and price goes high, people start to sell particular stocks more and price goes down.
+This assumption is not far from the truth, though maybe oversimplified. (But after all we are not in stock marketing class)
+Our predicting strategy based on this assumption. We will analyze market behavior and try to predict short term trends. In stock marked such strategy called “shaving” or “scalping”.
+This is not what professional brokers use, because it doesn’t bring a lot of profit, but beginner individual traders use it quite a lot.
+
+
+PREDICTING TACTICS
+
+We choose short time period for which we are going to predict trend ‘prediction length’. We also choose our target difference of price ‘price jump’.
+For each timestamp we look forward for ‘prediction length’ and check if price goes up or down for the ‘price jump’ within this period.
+We create target variable ‘y’ for our data sets based on these observations.
+If price goes down for ‘price jump’, means we have to ‘sell’. If price goes up, means we have to ‘buy’. If price stays within ‘price jump’ limits for ‘prediction length’ we ‘hold’.
+Our target variable ‘y’ will look like:
+- ‘sell’ [1,0,0]
+- ‘hold’ [0,1,0]
+- ‘buy’  [0,0,1]
+In order to evaluate the model we could not simply compare  ‘ŷ’ and ‘y’ because we don’t care if model correctly predict ‘hold’. This prediction is not giving us any profit or loss.
+We wrote function that compare ‘ŷ’ and ‘y’ and count ‘wrong’ if we predicted ‘buy’ when we have to ‘sell’ and vice versa, and count ‘right’ if we predicted ‘buy’ when we have to ‘buy’ and we predicted ‘sell’ when we have to ‘sell’. 
+
+
+PROCESS
+
+For training and evaluating we use following hyper-parameters:
+sequence length – it’s how deep back we are going to do back propagation
+prediction length – time period for which we are going to predict trends 
+price jump – difference in the price between ‘buy’ and ‘sell’ points 
+hidden size – the dimension of the hidden layer
+number of layers – the amount of hidden layers we use 
+learning rate
+epochs
+batch_size
+
+After creating ‘y’ variable as mentioned above we can start learning and evaluating process.
+
+RNN.
+First we used RNN (many to many) with following parameters:
+sequence length = 1000
+prediction length = 10000
+price jump = 0.01
+hidden size = 42
+number of layers = 3
+learning rate = 1e-4
+epochs = 2
+batch_size = 1
+
+For the beginning we choose small price jump just to check how model works.
+We trained the model on 3 years: 2017, 2018, 2019 and tested it on 2020. Results:
+
+right = 112749
+wrong = 75682
+
+We decided to use different tactics of evaluating. We trained the model on 2017 and tested on 2018, then we trained the model on 2018 and tested on 2019, then we trained the model on 2019 and tested on 2020.
+We got results much worse. ‘Right’ and ‘wrong’ was approximately even. Sometimes ‘right’ was higher, sometimes ‘wrong’ was higher.
+
+So we decided to change some of hyper-parameters. We increased ‘sequence length’, ‘prediction length’ and ‘price jump’ twice:
+sequence length = 2000
+prediction length = 20000
+price jump = 0.02
+We thought that making ‘price jump’ more prominent will help model better recognize difference. And also increasing ‘sequence length’ will make model more sensitive to past events.
+With new parameters we had results:
+training on 2017 evaluating on 2018
+training on 2018 evaluating on 2019
+training on 2019, evaluating on 2020
+right 93046
+wrong 69601
+right 30443
+wrong 9821
+right 107923
+wrong 69434
+
+So, we decided that results are acceptable and we kept those hyper-parameters.
+
+We also tried RNN many to one:
+
+17-18
+18-19
+19-20
+right 72185
+wrong 91795
+right 106753
+wrong 90078
+right 117130
+wrong 87774
+
+‘Many to many’ produced better results. Probably because fully ‘many to one’ training would take much more time and we had to use randomly taken sequences and overall we trained ‘many to one’ on much less iterations than ‘many to many’.
+
+
+LSTM.
+LSTMiii (Long Short-Term Memory) is an improvement of RNN. Make long story short it deals better with past events, avoiding vanishing gradient descent.
+So, we decided to use LSTM to improve our prediction.
+We used same hyper-parameters we used for last good working RNN:
+sequence length = 2000
+prediction length = 20000
+price jump = 0.02
+hidden size = 42
+number of layers = 3
+learning rate = 1e-4
+epochs = 2
+batch_size = 1
+Results were surprisingly bad. They were approximately equal or even not in our favor:
+
+right 71828
+wrong 75003
+
+We concluded that LSTM takes into account past events better than RNN. And maybe that ‘sequence length’ = 2000 was to high for RNN because of vanishing gradient (we used sigmoid as non-linearity), and RNN simply could not look so deep back, and truly used much less ‘sequence length’ than we gave to it.
+We decided to reduce ‘sequence length’ for LSTM to 512. And results became better:
+17-18
+18-19
+19-20
+right 86002
+wrong 75113
+right 17973
+wrong 12146
+right 79703
+wrong 66151
+
+Which made us thing that we are maybe on right track.
+
+After experimenting with different ‘sequence length’ we came to conclusion that ‘sequence length’ = 256 or 512 gives approximately equal and best results among other ‘sequence length’ choices.
+
+
+GRU
+GRU is doing approximately the same as LSTM, just uses 2 gates instead of 3, so it computationally more efficient. It trains faster. But is it better or worse than LSTM is still subject of debates.
+Anyway we trained and used GRU on our data.
+We used different ‘sequence length’ = 128, 256, 512 and 1024. Best results we get with ‘sequence length’ = 256:
+17-18
+18-19
+19-20
+right 98438
+wrong 76710
+right 28777
+wrong 14488
+right 106069
+wrong 80696
+
+
+CONCLUSION
+
+We used RNN, RNN many to one, LSTM and GRU. And between these 3 models GRU and RNN produced better and more stable results.
+We can use our model to decide weather to buy or sell EUR/USD currency pair. 
 Example of using the model:
-
-1. Define 2 hyper-parametersexperimentally:"pricejump"and"predictionlength."Thesearedifferentdepending
-    on the currency pairs
-
-
-2. Atanytimestamp,themodelpredictswhattodo.Forexample,themodelsays"buy."Webuyafixedamountof
-    units of EUR/USD pairs
-3. Now we anticipate one of the 3 following events:
-    a. Price goes up for "price jump"
-    b. Price goes down for "price jump"
-    c. Neither of the previous two happen during "predictionlength"
-4. Whichever happens first – we sell.
-
-Ifweguessright,weprofitbya **fixedprice** ,ifweguesswrong,welosethesame **fixedprice** .Ifthepricedoesnotgoup
-or down, we would sustain, approximately, no financialgain or loss^1.
-
-## 3 Experiments
-
-For training and evaluating we use the following hyper-parameters:
-
-```
-● Sequence length – How deep back we are going to performback-propagation
-● Prediction length – The period for which we are goingto predict trends
-● Price jump – The price difference between "buy" and"sell" points
-● Hidden size – The dimension of the hidden layer
-● Number of hidden layers
-● Learning rate
-● Epochs
-● Batch size
-```
-After creating the "y" variable as mentioned before,we may start the learning and evaluation processes.
-
-### RNN
-
-First we designed an RNN (many to many) with followingparameters:
-● Sequence length = 1000
-● Prediction length = 10000
-● Price jump = 0.
-● Hidden size = 42
-● Number of layers = 3
-● Learning rate = 1e-
-● Epochs = 2
-● Batch size = 1
-
-Initially,wechooseasmallpricejumpjusttocheckhowthemodelworks.Wetrainedthemodelonthedatasetsfor
-three years: 2017, 2018, and 2019 and tested it on2020. Results:
-
-```
-● Right: 112749
-● Wrong: 75682
-```
-Wedecidedtouseadifferentapproach.Wetrainedthemodelon 2017 andtestedon 2018 andperformedthesame
-routinetotrainthemodelonthedatasetforoneyearandtestonthenext.Theresultsweremuchworse."Right"and
-"wrong" were approximately even. Sometimes "right"was higher, and sometimes "wrong" was higher.
-
-(^1) It is true that whenever we buy or sell, we may haveto pay some fees. There are also margins etc. butas we mentioned before, we would like to disregardthese costs and
-instead explore theoretical possibilities of our machinelearning models.
-
-
-Sowedecidedtochangesomeofthehyperparameters.Weincreased"sequencelength","predictionlength"and"price
-jump" by a factor of 2:
-
-```
-● sequence length = 2000
-● prediction length = 20000
-● price jump = 0.
-```
-Wehypothesizedthatmaking"pricejump"moreprominentwillenableourmodeltodiscriminatemoreconfidentlyand
-increasing"sequencelength"willmakethemodelmoresensitivetopastevents.Thesenewparametersimprovedour
-results:
-
-```
-Training on:
-Testing on:
-```
-#### 2017
-
-#### 2018
-
-#### 2018
-
-#### 2019
-
-#### 2019
-
-#### 2020
-
-```
-Right 78409 19248 82129
-```
-```
-Wrong 50739 15141 61335
-```
-We considered these experiments sufficient and movedon to the next model using the same hyperparameters.
-
-### LSTM
-
-LSTMisanimprovementofRNN.Briefly,LSTMdealswithpasteventsbetterthananRNN,avoidingtheproblemof
-vanishing gradient descent. Hence,to improveour predictionand exploreother architectures as an educational
-endeavor,weoptedtomodelanLSTM.Weusedthesamehyper-parametersweusedforthefinalwell-performingRNN.
-The "rights" and "wrongs" were approximately equaland in some cases not in our favor:
-
-```
-● Right: 71828
-● Wrong: 75003
-```
-WeconcludedthatLSTMtakespasteventsintoaccountbetterthanRNNandperhapsthata"sequencelength"of 2000
-wastoohighforRNNbecauseofthevanishinggradientproblem(weusedsigmoidasnon-linearity).Itmayhavebeen
-thecasethattheRNNcouldnot"remember"sofarback,andtrulyusedasmaller"sequencelength"thanwespecified.
-We decided to reduce the "sequence length" of ourLSTM to 512 and the results became slightly better:
-
-```
-Training on:
-Testing on:
-```
-#### 2017
-
-#### 2018
-
-#### 2018
-
-#### 2019
-
-#### 2019
-
-#### 2020
-
-```
-Right 86002 17973 79703
-```
-```
-Wrong 75113 12146 66151
-```
-These results led us to believe that we may be onthe right track.
-
-Afterexperimentingwithdifferent"sequencelengths"weconcludedthata"sequencelength"of 256 or 512 givesus
-approximately equal and best results among other "sequencelength" choices.
-
-
-### GRU
-
-GRUismuchsimilarinfunctionalityasanLSTM,onlythatituses 2 gatesinsteadof 3 andthereforeiscomputationally
-more efficient and trains faster. However, whetherit is better or worse than LSTM is still a subjectof debate.
-
-We used different "sequence length" = 128, 256, 512and 1024. We get the best results with "sequencelength" = 256:
-
-```
-Training on:
-Testing on:
-```
-#### 2017
-
-#### 2018
-
-#### 2018
-
-#### 2019
-
-#### 2019
-
-#### 2020
-
-```
-Right 98438 28777 106069
-```
-```
-Wrong 76710 14488 80696
-```
-## 4 Conclusions
-
-Weused 2 typesofRNN:"manytomany"and"manytoone.""Manytomany"producedbetterresults.Wepresumethis
-isbecauseweusedrandomlysampledsequences(sincefullytraining"manytoone"takesmuchmoretime).Inother
-words, we trained "many to one" on much fewer samplesthan "many to many."
-
-WeusedRNNmanytomany,RNNmanytoone,LSTM,andGRU,andbetweenthese,GRUandRNNproducedbetter
-and more stable results. We can use our model to decidewhether to buy or sell EUR/USD currency pairs.
-
-### Testing
-
-Thereisa possibilitythat ourmodeliscoincidentally rightforthegivendata.Aswementioned,weuseddifferent
-hyper-parameters in different cases and picked themexperimentally.
-Fortestingpurposes,wepickedthehyper-parameterswhichgivesusbetterperformanceingeneralamongallmodels,
-andusedthemondifferentcurrencypairswithoutanychangesortuning.WeusedEUR/GBPandGBP/USDandyou
-can see the results below:
-
-#### EUR/GBP
-
-#### RNN
-
-```
-many-to-many
-```
-#### RNN
-
-```
-many-to-one
-```
-#### LSTM GRU
-
-```
-17-18 Right 24637
-Wrong 13863
-```
-```
-Right 21143
-Wrong 14907
-```
-```
-Right 15740
-Wrong 18992
-```
-```
-Right 27372
-Wrong 14093
-```
-```
-18-19 Right 61299
-Wrong 48633
-```
-```
-Right 52642
-Wrong 43277
-```
-```
-Right 58515
-Wrong 52813
-```
-```
-Right 63851
-Wrong 54709
-```
-```
-19-20 Right 52509
-Wrong 51153
-```
-```
-Right 54451
-Wrong 47379
-```
-```
-Right 54451
-Wrong 47379
-```
-```
-Right 66360
-Wrong 52358
-```
-
-#### GBP/USD
-
-#### RNN
-
-```
-many-to-many
-```
-#### RNN
-
-```
-many-to-one
-```
-#### LSTM GRU
-
-```
-17-18 Right 167648
-Wrong 136252
-```
-```
-Right 72185
-Wrong 91795
-```
-```
-Right 86890
-Wrong 98574
-```
-```
-Right 166273
-Wrong 133532
-```
-```
-18-19 Right 138612
-Wrong 111615
-```
-```
-Right 138612
-Wrong 90078
-```
-```
-Right 106753
-Wrong 90303
-```
-```
-Right 123373
-Wrong 108532
-```
-```
-19-20 Right 173447
-Wrong 130161
-```
-```
-Right 117130
-Wrong 87774
-```
-```
-Right 118130
-Wrong 86774
-```
-```
-Right 144063
-Wrong 117598
-```
-As we can see, the results are less stable for allbut RNN (many to many) and GRU.
-
-Modelsweretunedfordifferentcurrencypairsandeachcurrencypairhasitscharacteristics.Thesituationisnotlike 1
-dollar= 1 euro= 1 poundandsoon.Thisiswhy"pricejump"shouldbechosenindividually.Furthermore,different
-currenciesmayhavedifferentdynamicsthataffecttheirpricesaccordingtotheircountries"economicstructures.Some
-economiesmayreactfaster,somemayhave"amortization"mechanismssotheircurrenciesreactslower.Thus,wemay
-need to choose different "sequence lengths" and "predictionlengths" for different pairs.
-
-Ultimately, ourtestresultsshowthatRNN, LSTM,andGRUmodelsthatarenot exhaustivelytunedforparticular
-currencypaircanstillprovidepositiveresults.Thissupportsourassumptionthatshort-termtrendscanbepredicted
-based on price history.
-Instructions of using the model would be:
-
-1. Gover more years of data.
-2. Choose a currency pair.
-3. Tune hyper-parameters for this currency pair uningtraining and validation sets.
-4. Test the model on a test set.
-5. Use the model in real time to predict this currencypair behavior on the market (make some profit).
-Again,inthisprojectwearenotcreatingoptimizedmodelforuseinthemarket,weareexploringpossibilityforrecurrent
-neural networks predict trends based on price history.
-
-### Supplementary Experiments
-
-Stockmarketbehavesdifferentlyrightafteropeningandrightbeforeclosing(weekends,holidays). Wemodifiedourdata
-and included feature indicated periods before openingand closing.
-We also experimented with different prediction lengths.
-Prediction length = 1024
-
-```
-Training on:
-Testing on:
-```
-#### 2017
-
-#### 2018
-
-#### 2018
-
-#### 2019
-
-#### 2019
-
-#### 2020
-
-```
-Right 12 0 186
-```
-```
-Wrong 0 0 12
-```
-Witha shortpredictionperiodthemodelbecamemuchmorecautious,predicting holdmoreoften,butalsomore
-accurate.
-
-
-Prediction length = 4096
-
-```
-Training on:
-Testing on:
-```
-#### 2017
-
-#### 2018
-
-#### 2018
-
-#### 2019
-
-#### 2019
-
-#### 2020
-
-```
-Right 13886 487 16779
-```
-```
-Wrong 7409 56 9942
-```
-Naturally by increasing prediction length more chancesfor price change it’s value by ‘price jump’.
-
-Wenoticedthatduringthetrainingprocesslossstoppedreducingatsomepoint.Sowetriedtostoptrainingwhenloss
-stops reducing. Results became much worse. We concluded that with more data despite training loss stays
-approximately the same model still keeps trainingand adjusting and validation accuracy improves.
-
-## 5 References
-
-[1] "Long short-term memory." _Wikipedia_ , en.wikipedia.org/wiki/Long_short-term_memory.Accessed 30 May 2021.
-
-[2] _PyTorch_. pytorch.org
-
-[3]Galeshchuk, Svitlana, and Sumitra Mukherjee. "Deeplearning for predictions in emerging currency markets."
-_International Conference on Agents and ArtificialIntelligence_. Vol. 2. SCITEPRESS, 2017.
-
-[4]Nguyen, Andrew. "Exchange Rate Prediction: MachineLearning with 5 Regression Models." _towards datascience_ ,
-Medium, 20 May 2020, towardsdatascience.com/
-exchange-rate-prediction-machine-learning-with-5-regression-models-d7a3192531d.Accessed 27 Apr. 2021.
-
-[5]Vyklyuk, Yaroslav, Darko Vukovic, and Ana Jovanovic."Forex prediction with neural network: USD/EUR currencypair."
-_Актуальні проблеми економіки_ 10 (2013): 261-273.
-
-[6] _HistData_. https://www.histdata.com/. Accessed27 Apr. 2021.
-
-
+    1. we have to use 2 hyper-parameters: ‘price jump’ and ‘prediction length’
+    2. at any timestamp the model predicts what to do. For example model says ‘buy’. We buy fixed amount of units of EUR/USD pair
+    3. Now we wait for one of 3 events:
+        1. price goes up for ‘price jump’
+        2. price goes down for ‘price jump’
+        3. neither one of previous 2 happened during ‘prediction length’
+    4. Which ever happens first – we sell.
+So if we guess right we win fixed price, if we guess wrong we lose same fixed price. If price will not go up or down we would stay approximately the same1.
+
+
+TESTING
+
+There is a possibility that our model just coincidentally right for given data. As we mentioned for different cases we used different hyper-parameters. And we pick them after experimenting.
+For testing purposes we picked the hyper-parameters which give us generally better performance among all models. And without tuning and changing we used it on different currency pairs.
+For testing we used EUR/GBP and GBP/USD. Bellow you can see results.
+
+EUR/GBP
+
+RNN
+many to many
+RNN
+many to one
+LSTM
+GRU
+17-18
+right 24637
+wrong 13863
+right 21143
+wrong 14907
+right 15740
+wrong 18992
+right 27372
+wrong 14093
+18-19
+right 61299
+wrong 48633
+right 52642
+wrong 43277
+right 58515
+wrong 52813
+right 63851
+wrong 54709
+19-20
+right 52509
+wrong 51153
+right 54451
+wrong 47379
+right 54451
+wrong 47379
+right 66360
+wrong 52358
+
+ GBP/USD
+
+RNN
+many to many
+RNN
+many to one
+LSTM
+GRU
+17-18
+right 167648
+wrong 136252
+right 72185
+wrong 91795
+right 86890
+wrong 98574
+right 166273
+wrong 133532
+18-19
+right 138612
+wrong 111615
+right 106753
+wrong 90078
+right 77266
+wrong 90303
+right 123373
+wrong 108532
+19-20
+right 173447
+wrong 130161
+right 117130
+wrong 87774
+right 117130
+wrong 87774
+right 144063
+wrong 117598
+
+As we can see results are less stable but for RNN many to many and GRU quite good.
+Models were tuned for different currency pair. And each currency pair has their own characteristics. The situation is not like 1 dollar = 1 euro = 1 pound etc. That’s why ‘price jump’ should be chosen individually. Also different currencies may have different dynamic of changing according to their countries economy structure. Some economies may react faster some may have “amortization” mechanisms so their currencies react slower. So we may need to choose different ‘sequence length’ and ‘prediction length’.
+But we think testing results show us that even not tuned, general model can still perform well. Which supports our assumption that short term trends can be predicted based on price history. 
